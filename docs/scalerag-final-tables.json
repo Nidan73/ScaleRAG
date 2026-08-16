@@ -1,0 +1,112 @@
+{
+  "study": "ScaleRAG-TS controlled study",
+  "verdict": "positive retrieval augmentation of frozen Chronos-2 (regime-dependent); no pre-registered success criterion met; graph-routing rejected cross-dataset",
+  "m5_1000": {
+    "methods_rmsse": {
+      "recent_mean": 0.7220824121274221,
+      "seasonal_naive": 0.951802930248127,
+      "lightgbm": 0.7175355694891105,
+      "chronos2_target": 0.7539587247776638,
+      "retrieval_raw": 0.7576107070840873,
+      "retrieval_scaleaware_P5": 0.7424561064366584,
+      "RAFT_style": 0.8267552877010563,
+      "TSRAG_style_fusion": 0.7866383714084775,
+      "fusion_fixed0.5": 0.7251628266273276,
+      "ScaleRAG_gated": 0.717305058911237
+    },
+    "scalerag_vs_chronos": {
+      "rel_improvement": 0.04861495021128071,
+      "ci95_low": 0.0430429362997639,
+      "ci95_high": 0.05393849368597238,
+      "excludes_zero": true,
+      "n": 1000
+    },
+    "scalerag_vs_strongest": {
+      "rel_improvement": 0.0003212531722122337,
+      "ci95_low": -0.00554986443230368,
+      "ci95_high": 0.006328077485272804,
+      "excludes_zero": false,
+      "n": 1000
+    },
+    "strongest_baseline": "lightgbm",
+    "slices": {
+      "intermittent(z>0.8)": {
+        "vs_chronos_rel": 0.050094884051850495,
+        "scalerag_rmsse": 0.7313713957433756,
+        "recent_rmsse": 0.7295655815727778
+      },
+      "low_volume(<med)": {
+        "vs_chronos_rel": 0.05749550828454374,
+        "scalerag_rmsse": 0.72698367561172,
+        "recent_rmsse": 0.7225274395720604
+      },
+      "reduced_history(<100nz)": {
+        "vs_chronos_rel": 0.03987901065322361,
+        "scalerag_rmsse": 0.868288604106924,
+        "recent_rmsse": 0.8678685542607341
+      },
+      "dense(z<0.3)": {
+        "vs_chronos_rel": -0.0030709271669517877,
+        "scalerag_rmsse": 0.6557948697679028,
+        "recent_rmsse": 0.6931354417720706
+      }
+    },
+    "gate_behaviour": {
+      "alpha_mean": 0.6400368789685666,
+      "alpha_std": 0.24406733140358527,
+      "alpha_pct_prefer_chronos(<0.5)": 0.304,
+      "corr_alpha_chronos_unc": -0.36314981680903585,
+      "corr_alpha_disagreement": -0.3505157438594678,
+      "corr_alpha_intermittency": 0.38129044382732064
+    },
+    "calibration": {
+      "chronos_cov80": 0.7912857142857143,
+      "scalerag_cov80": 0.6885,
+      "note": "fusion improves point RMSSE but under-covers vs Chronos; post-hoc widening trades width for coverage"
+    },
+    "key_ablations": {
+      "norm_no_restore": 2.788399207280297,
+      "mean_scaling": 0.7424561064366584,
+      "no_category_filter": 0.7382787110842058,
+      "k=20": 0.7424561064366584,
+      "context=84": 0.7348850516549994,
+      "fixed_gate_0.5": 0.7251628266273276
+    }
+  },
+  "favorita_5000": {
+    "methods_rmsse": {
+      "recent_mean": 0.7757157213669394,
+      "chronos2_target": 0.7287461397547859,
+      "retrieval_scaleaware": 0.78271615560888,
+      "ScaleRAG_gated": 0.7226931751288974
+    },
+    "scalerag_vs_chronos": {
+      "rel_improvement": 0.008305998887246518,
+      "ci95_low": 0.006392539019263186,
+      "ci95_high": 0.010307869036746171,
+      "excludes_zero": true,
+      "n": 5000
+    },
+    "strongest_baseline": "chronos2_target"
+  },
+  "preregistered_criteria": {
+    "c1_3pct_over_strongest": {
+      "m5": 0.0003212531722122337,
+      "favorita": 0.008305998887246518,
+      "met": false
+    },
+    "c2_5pct_over_chronos_both": {
+      "m5": 0.04861495021128071,
+      "favorita": 0.008305998887246518,
+      "met": false
+    },
+    "c3_7pct_slice_over_strongest": {
+      "met": false
+    }
+  },
+  "graph_routing_negative": {
+    "m5_metadata_util_corr": 0.003,
+    "favorita_metadata_util_corr": -0.06273101265822785,
+    "conclusion": "typed-relation routing adds no retrieval value beyond temporal similarity on either dataset"
+  }
+}

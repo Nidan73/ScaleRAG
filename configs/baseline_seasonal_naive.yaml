@@ -1,0 +1,11 @@
+# Seasonal Naive baseline — small declared smoke run (Phase 2).
+# Evaluated on the `val` split (forecast d_1886–d_1913) so `test` stays held out.
+name: seasonal_naive_smoke
+baseline: seasonal_naive
+processed_dir: data/processed
+last_labeled_day: 1941   # public M5 labels; splits derive from this
+n_earlier_val: 2
+split: val
+subset: 24               # small declared subset (synthetic fixture has 24 series)
+seed: 42                 # deterministic; seasonal naive has no stochastic seed
+params: {}

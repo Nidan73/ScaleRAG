@@ -1,0 +1,16 @@
+# LightGBM on a DECLARED SMALL SUBSET of real M5 (200 series), val split.
+# Runs first; the full run proceeds only if this passes (task 8). 3 seeds for dispersion.
+name: real_lightgbm_subset_val
+baseline: lightgbm
+processed_dir: data/processed
+last_labeled_day: 1941
+n_earlier_val: 2
+split: val
+subset: 200
+seeds: [42, 43, 44]
+params:
+  n_estimators: 200
+  learning_rate: 0.05
+  num_leaves: 31
+  objective: tweedie
+  tweedie_variance_power: 1.1

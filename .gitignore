@@ -1,0 +1,76 @@
+# ---------------------------------------------------------------------------
+# Secrets — never commit credentials of any kind.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kaggle.json
+
+# ---------------------------------------------------------------------------
+# Datasets. M5 and Favorita are Kaggle-licensed and ETTm2 is fetched from
+# upstream; none of them may be redistributed here. The pipeline regenerates
+# everything under data/ from scripts/.
+# ---------------------------------------------------------------------------
+# Anchored with a leading slash so it matches only the top-level dataset
+# directory, never the `src/scalerag/data/` package.
+/data/
+*.parquet
+*.csv
+*.csv.gz
+*.zip
+*.7z
+*.tar.gz
+
+# ---------------------------------------------------------------------------
+# Model weights and checkpoints — pulled from the public Chronos releases.
+# ---------------------------------------------------------------------------
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.bin
+.hf_cache/
+
+# ---------------------------------------------------------------------------
+# Run outputs. reports/ is regenerable by the scripts in scripts/; the curated
+# results that back the paper live in docs/ and are tracked.
+# ---------------------------------------------------------------------------
+reports/
+outputs/
+artifacts/
+logs/
+*.lock.json
+M5_TEST_CONSUMED.lock
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version.local
+
+# ---------------------------------------------------------------------------
+# Tooling caches
+# ---------------------------------------------------------------------------
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+*.swp

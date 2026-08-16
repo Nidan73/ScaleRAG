@@ -1,0 +1,11 @@
+# Seasonal Naive on the FULL real M5, validation split (d_1886-d_1913).
+# test (d_1914-d_1941) is never evaluated. Requires --allow-full (subset: null).
+name: real_seasonal_naive_val
+baseline: seasonal_naive
+processed_dir: data/processed
+last_labeled_day: 1941
+n_earlier_val: 2
+split: val
+subset: null
+seed: 42
+params: {}

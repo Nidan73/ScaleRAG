@@ -1,0 +1,8 @@
+{
+  "split": { "train_end": 1885, "val_end": 1913, "test_start": 1914 },
+  "windows": { "train": [[1, 1885]], "eval": [[1886, 1913]] },
+  "features": {
+    "columns": ["lag_28", "lag_35", "rmean_7_lag28", "wday", "month", "snap", "sell_price"],
+    "target": "sales"
+  }
+}

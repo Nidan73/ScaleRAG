@@ -1,0 +1,17 @@
+{
+  "phase": "11A",
+  "method": "scalerag_restored_fixed_fusion",
+  "backbone": "amazon/chronos-bolt-base (frozen)",
+  "context_length": 512,
+  "horizon": 64,
+  "scale_strategy": "mean",
+  "top_k": 20,
+  "fusion_weight": 0.25,
+  "candidate_pool": "train-only (t_r + H <= 34560), exact scale-aware kNN",
+  "learned_gate": false,
+  "selection_split": "ETTm2 validation",
+  "selection_rule": "min val MSE s.t. val MAE <= 1.02 * grid-best val MAE",
+  "val_mse": 0.11101660485331646,
+  "val_mae": 0.2231913445929942,
+  "frozen_before_test_datasets": true
+}

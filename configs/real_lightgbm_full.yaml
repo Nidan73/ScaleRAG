@@ -1,0 +1,18 @@
+# LightGBM on the FULL real M5 (all 30,490 series), val split (d_1886-d_1913).
+# Run only after the subset run passes (task 8). Requires --allow-full.
+# Single seed for the primary full run (resource cost); seed dispersion is
+# characterized on the subset config.
+name: real_lightgbm_full_val
+baseline: lightgbm
+processed_dir: data/processed
+last_labeled_day: 1941
+n_earlier_val: 2
+split: val
+subset: null
+seed: 42
+params:
+  n_estimators: 200
+  learning_rate: 0.05
+  num_leaves: 31
+  objective: tweedie
+  tweedie_variance_power: 1.1

@@ -1,0 +1,396 @@
+{
+  "study": "ScaleRAG-TS \u2014 final locked held-out test (Phase 10)",
+  "test_split": "M5 d_1914-d_1941 (consumed once; see M5_TEST_CONSUMED.lock)",
+  "git_commit": "d42d20e3bc4d6096f82349d16284b5b6da00346f",
+  "frozen_config": "ScaleRAG_gated: mean/L2/cat-filter/k=20 + scale restoration + LGBM gate",
+  "gate_origins": [
+    1829,
+    1857
+  ],
+  "population": "full M5 panel, 30490 series",
+  "verdict": "0/3 pre-registered criteria met on held-out test; ScaleRAG improves Chronos-2 on RMSSE (+5.49%) only, regime- and metric-dependent; LightGBM/Seasonal-Naive win official WRMSSE; Chronos-2 best on MAE/WAPE/MASE/pinball/coverage",
+  "test": {
+    "eval_window": "d_1914-d_1941",
+    "n_series": 30490,
+    "methods": {
+      "recent_mean": {
+        "rmsse": 0.7669006143818549,
+        "wrmsse": 1.0876028485862725,
+        "mase": 1.0738419948733386,
+        "wape": 0.7452848690403124,
+        "mae": 1.0753116612338605,
+        "pinball": 0.5376558306169302,
+        "cov50": 0.026348217214074873,
+        "cov80": 0.026348217214074873,
+        "cov90": 0.026348217214074873,
+        "width80": 0.0
+      },
+      "seasonal_naive": {
+        "rmsse": 0.9972420371212409,
+        "wrmsse": 0.869700702331063,
+        "mase": 1.2111840263991596,
+        "wape": 0.8621813918900049,
+        "mae": 1.2439722625685237,
+        "pinball": 0.6219861312842618,
+        "cov50": 0.4577238438832404,
+        "cov80": 0.4577238438832404,
+        "cov90": 0.4577238438832404,
+        "width80": 0.0
+      },
+      "lightgbm": {
+        "rmsse": 0.7664720329907873,
+        "wrmsse": 0.8662986834873586,
+        "mase": 1.0772949926689948,
+        "wape": 0.7396488774230703,
+        "mae": 1.067179941725801,
+        "pinball": 0.5335899708629005,
+        "cov50": 0.0,
+        "cov80": 0.0,
+        "cov90": 0.0,
+        "width80": 0.0
+      },
+      "chronos2_target": {
+        "rmsse": 0.8053793034204073,
+        "wrmsse": 1.939512483576866,
+        "mase": 0.8931894433905123,
+        "wape": 0.6652695376059768,
+        "mae": 0.9598639679516568,
+        "pinball": 0.28859809707083134,
+        "cov50": 0.35837628262193694,
+        "cov80": 0.7864276343531837,
+        "cov90": 0.9065033031907417,
+        "width80": 2.837459087371826
+      },
+      "retrieval_scaleaware": {
+        "rmsse": 0.7794626021660002,
+        "wrmsse": 1.2292617442556775,
+        "mase": 1.1107953228218945,
+        "wape": 0.7432662273556818,
+        "mae": 1.0723991253250997,
+        "pinball": 0.3262582126615511,
+        "cov50": 0.5252881506817223,
+        "cov80": 0.7279775570444642,
+        "cov90": 0.8045471583188868,
+        "width80": 2.040890674823178
+      },
+      "fusion_fixed0.5": {
+        "rmsse": 0.7692042933117564,
+        "wrmsse": 1.380899380343342,
+        "mase": 0.9911388854837756,
+        "wape": 0.6909236976114185,
+        "mae": 0.996878294364231,
+        "pinball": 0.29571127128933483,
+        "cov50": 0.3066743194489997,
+        "cov80": 0.7147132549313592,
+        "cov90": 0.8476467694326009,
+        "width80": 2.4369727066738616
+      },
+      "ScaleRAG_gated": {
+        "rmsse": 0.7611532841582019,
+        "wrmsse": 1.223053045470008,
+        "mase": 1.019515648061554,
+        "wape": 0.6982989461084517,
+        "mae": 1.0075194478919678,
+        "pinball": 0.29812260162574966,
+        "cov50": 0.3059832263505599,
+        "cov80": 0.6975343203860751,
+        "cov90": 0.8278182542285527,
+        "width80": 2.4045504564953197
+      }
+    },
+    "strongest_baseline": "lightgbm",
+    "scalerag_vs_chronos": {
+      "rel_improvement": 0.0549132800835328,
+      "ci95_low": 0.0539959723861063,
+      "ci95_high": 0.05587702799646904,
+      "excludes_zero": true,
+      "n": 30490
+    },
+    "scalerag_vs_strongest": {
+      "rel_improvement": 0.00693926014734219,
+      "ci95_low": 0.00571592726490809,
+      "ci95_high": 0.008197188897119359,
+      "excludes_zero": true,
+      "n": 30490
+    },
+    "per_method_vs_chronos": {
+      "recent_mean": 0.047777101888681894,
+      "seasonal_naive": -0.23822655100025764,
+      "lightgbm": 0.048309250392185074,
+      "retrieval_scaleaware": 0.03217949746701978,
+      "fusion_fixed0.5": 0.044916736691664835,
+      "ScaleRAG_gated": 0.0549132800835328
+    },
+    "slices": {
+      "intermittent(z>0.8)": {
+        "n": 11783,
+        "vs_chronos": 0.05967577335912072,
+        "vs_chronos_ci": [
+          0.05810710429505595,
+          0.06129534188124747
+        ],
+        "vs_strongest": -0.0002926864392823806,
+        "vs_strongest_ci": [
+          -0.0017276978238243783,
+          0.0012626276729468635
+        ]
+      },
+      "low_volume(<med)": {
+        "n": 15241,
+        "vs_chronos": 0.06849335659705552,
+        "vs_chronos_ci": [
+          0.0671060929923205,
+          0.06985955192801173
+        ],
+        "vs_strongest": -0.0030166396950306916,
+        "vs_strongest_ci": [
+          -0.004277383201738198,
+          -0.0017373280561772616
+        ]
+      },
+      "reduced_history(<100nz)": {
+        "n": 1778,
+        "vs_chronos": 0.031411541541359424,
+        "vs_chronos_ci": [
+          0.026345525178209168,
+          0.036125804290178164
+        ],
+        "vs_strongest": 0.009322183187998236,
+        "vs_strongest_ci": [
+          0.004040406520728263,
+          0.01510146009375584
+        ]
+      },
+      "dense(z<0.3)": {
+        "n": 2247,
+        "vs_chronos": 0.0034189052385980977,
+        "vs_chronos_ci": [
+          0.001208127056500503,
+          0.005569702422221921
+        ],
+        "vs_strongest": 0.050445414632569366,
+        "vs_strongest_ci": [
+          0.04282869553039427,
+          0.059017511969839426
+        ]
+      }
+    },
+    "gate_behaviour": {
+      "alpha_mean": 0.6219664455775091,
+      "alpha_std": 0.2148183244693282,
+      "alpha_pct_prefer_chronos(<0.5)": 0.3378812725483765,
+      "corr_alpha_chronos_unc": -0.4377722692540937,
+      "corr_alpha_intermittency": 0.48459063002993097
+    },
+    "profiling": {
+      "chronos_inference_ms": 35737,
+      "retrieval_ms": 42225,
+      "gpu_vram_gib": 1.763,
+      "host_ram_peak_gib": 26.449,
+      "backbone_params_updated": 0,
+      "backbone_frozen": true,
+      "gate_kind": "LightGBM GBDT",
+      "gate_ensemble_leaf_values_approx": 9000,
+      "gate_seeds_averaged": 3
+    }
+  },
+  "validation_full_panel": {
+    "eval_window": "d_1886-d_1913",
+    "n_series": 30490,
+    "methods": {
+      "recent_mean": {
+        "rmsse": 0.7442454314369539,
+        "wrmsse": 1.1014100550260513,
+        "mase": 1.088942253932008,
+        "wape": 0.76013465643467,
+        "mae": 1.0538761454073264,
+        "pinball": 0.5269380727036632,
+        "cov50": 0.033181839478986085,
+        "cov80": 0.033181839478986085,
+        "cov90": 0.033181839478986085,
+        "width80": 0.0
+      },
+      "seasonal_naive": {
+        "rmsse": 0.975596206683179,
+        "wrmsse": 0.9227813345358976,
+        "mase": 1.2269697576259488,
+        "wape": 0.8888669224907192,
+        "mae": 1.2323548704493277,
+        "pinball": 0.6161774352246638,
+        "cov50": 0.47516750222555404,
+        "cov80": 0.47516750222555404,
+        "cov90": 0.47516750222555404,
+        "width80": 0.0
+      },
+      "lightgbm": {
+        "rmsse": 0.7439942013190757,
+        "wrmsse": 0.7105798238952588,
+        "mase": 1.0966171527879718,
+        "wape": 0.7542986308756858,
+        "mae": 1.0457848841175847,
+        "pinball": 0.5228924420587923,
+        "cov50": 0.0,
+        "cov80": 0.0,
+        "cov90": 0.0,
+        "width80": 0.0
+      },
+      "chronos2_target": {
+        "rmsse": 0.776541409212862,
+        "wrmsse": 1.756786610585972,
+        "mase": 0.9036047914355981,
+        "wape": 0.6711934152274399,
+        "mae": 0.9305650298599,
+        "pinball": 0.27689154303590036,
+        "cov50": 0.36422597572974746,
+        "cov80": 0.790575364288057,
+        "cov90": 0.9091774820784332,
+        "width80": 2.8317222595214844
+      },
+      "retrieval_scaleaware": {
+        "rmsse": 0.761730938723884,
+        "wrmsse": 1.2853718973716883,
+        "mase": 1.1363047862379265,
+        "wape": 0.764629911416778,
+        "mae": 1.0601085174654399,
+        "pinball": 0.31792548770859436,
+        "cov50": 0.5422843555264021,
+        "cov80": 0.7392892283184183,
+        "cov90": 0.813145996345406,
+        "width80": 2.054276066052129
+      },
+      "fusion_fixed0.5": {
+        "rmsse": 0.7456324189995855,
+        "wrmsse": 1.2791056374848673,
+        "mase": 1.0084032525118602,
+        "wape": 0.7046264028049186,
+        "mae": 0.9769176435439895,
+        "pinball": 0.28644683394774134,
+        "cov50": 0.31508925643067986,
+        "cov80": 0.7218279998125849,
+        "cov90": 0.8526601227568757,
+        "width80": 2.4407759949617946
+      },
+      "ScaleRAG_gated": {
+        "rmsse": 0.7371223866826532,
+        "wrmsse": 1.1151712745410294,
+        "mase": 1.0333662986600083,
+        "wape": 0.7103241196188795,
+        "mae": 0.9848171489575223,
+        "pinball": 0.28768882117439176,
+        "cov50": 0.31483156069905827,
+        "cov80": 0.7062233519186618,
+        "cov90": 0.8344351778100548,
+        "width80": 2.414814914556511
+      }
+    },
+    "scalerag_vs_chronos": {
+      "rel_improvement": 0.05076229298597962,
+      "ci95_low": 0.04974338784036041,
+      "ci95_high": 0.05186695591859367,
+      "excludes_zero": true,
+      "n": 30490
+    },
+    "scalerag_vs_strongest": {
+      "rel_improvement": 0.009236381982868972,
+      "ci95_low": 0.00775738625315055,
+      "ci95_high": 0.010699191470828233,
+      "excludes_zero": true,
+      "n": 30490
+    },
+    "slices": {
+      "intermittent(z>0.8)": {
+        "n": 11907,
+        "vs_chronos": 0.05630336170319622,
+        "vs_chronos_ci": [
+          0.054490199250198885,
+          0.05830885876370411
+        ],
+        "vs_strongest": 0.005043804367438135,
+        "vs_strongest_ci": [
+          0.002908625613056078,
+          0.007125103074590082
+        ]
+      },
+      "low_volume(<med)": {
+        "n": 15233,
+        "vs_chronos": 0.06404037773007273,
+        "vs_chronos_ci": [
+          0.062470105841241914,
+          0.06564069269651664
+        ],
+        "vs_strongest": 0.0019388458183054143,
+        "vs_strongest_ci": [
+          0.0003529094358321974,
+          0.0036014748369241614
+        ]
+      },
+      "reduced_history(<100nz)": {
+        "n": 1932,
+        "vs_chronos": 0.03575185546576338,
+        "vs_chronos_ci": [
+          0.02990346199636349,
+          0.04125033803241897
+        ],
+        "vs_strongest": 0.009848718484072719,
+        "vs_strongest_ci": [
+          0.004628888476640988,
+          0.014757898726507776
+        ]
+      },
+      "dense(z<0.3)": {
+        "n": 2235,
+        "vs_chronos": 0.0012704632828158331,
+        "vs_chronos_ci": [
+          -0.0006830636683984797,
+          0.0031556493171828862
+        ],
+        "vs_strongest": 0.036190732755747176,
+        "vs_strongest_ci": [
+          0.029413246262766878,
+          0.04330008896484834
+        ]
+      }
+    },
+    "gate_behaviour": {
+      "alpha_mean": 0.6146773546938818,
+      "alpha_std": 0.21537774363647316,
+      "alpha_pct_prefer_chronos(<0.5)": 0.34840931452935386,
+      "corr_alpha_chronos_unc": -0.4136455522130339,
+      "corr_alpha_intermittency": 0.4391043870821713
+    }
+  },
+  "favorita_reference_frozen": {
+    "methods_rmsse": {
+      "recent_mean": 0.7757157213669394,
+      "chronos2_target": 0.7287461397547859,
+      "retrieval_scaleaware": 0.78271615560888,
+      "ScaleRAG_gated": 0.7226931751288974
+    },
+    "scalerag_vs_chronos": {
+      "rel_improvement": 0.008305998887246518,
+      "ci95_low": 0.006392539019263186,
+      "ci95_high": 0.010307869036746171,
+      "excludes_zero": true,
+      "n": 5000
+    },
+    "strongest_baseline": "chronos2_target"
+  },
+  "preregistered_criteria": {
+    "C1_ge3pct_over_strongest_ci_excl0": {
+      "test_rmsse_margin": 0.00693926014734219,
+      "test_wrmsse_scalerag": 1.223053045470008,
+      "test_wrmsse_strongest": 0.8662986834873586,
+      "met": false
+    },
+    "C2_ge5pct_over_chronos_both_datasets": {
+      "m5_test": 0.0549132800835328,
+      "favorita": 0.008305998887246518,
+      "met": false
+    },
+    "C3_ge7pct_on_sparse_slice_over_strongest": {
+      "best_sparse_slice_vs_strongest": 0.009322183187998236,
+      "met": false
+    },
+    "criteria_met_count": 0
+  }
+}

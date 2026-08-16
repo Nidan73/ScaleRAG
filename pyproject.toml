@@ -1,0 +1,145 @@
+[project]
+name = "scalerag"
+version = "0.1.0"
+description = "ScaleRAG: Scale-Aware Retrieval Augmentation for Time-Series Foundation Models"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+
+# ---------------------------------------------------------------------------
+# Core dependencies — lightweight data/CLI stack, always installed.
+# ---------------------------------------------------------------------------
+dependencies = [
+    "numpy>=2.1",
+    "pandas>=2.2",
+    "polars>=1.18",
+    "pyarrow>=18.0",
+    "duckdb>=1.1",
+    "scipy>=1.14",
+    "scikit-learn>=1.5",
+    "pydantic>=2.9",
+    "pyyaml>=6.0",
+    "typer>=0.15",
+    "rich>=13.9",
+    "tqdm>=4.67",
+    "joblib>=1.4",
+]
+
+[project.optional-dependencies]
+# Forecasting / ML stack. torch is pulled from the pinned CUDA index below.
+ml = [
+    "torch>=2.13,<2.14",
+    "transformers>=4.46",
+    "accelerate>=1.2",
+    "datasets>=3.2",
+    "safetensors>=0.4.5",
+    "lightgbm>=4.5",
+    "statsmodels>=0.14",
+    "huggingface-hub>=0.27",
+]
+
+# Time-Series Foundation Models — official Chronos package (Amazon Science).
+tsfm = [
+    "chronos-forecasting>=1.5",
+]
+
+# CPU retrieval. Exact IndexFlatL2 only; no approximate index is used anywhere.
+retrieval = [
+    "faiss-cpu>=1.9",
+]
+
+# Publication-quality figure generation (scripts/make_phase11a_figures.py).
+viz = [
+    "matplotlib>=3.10",
+]
+
+# Optional GPU retrieval. The batched-exact GPU path in retrieval_gpu.py needs
+# only torch; this group is for the FAISS GPU backend.
+gpu-retrieval = [
+    "faiss-gpu-cu12>=1.9 ; sys_platform == 'linux'",
+]
+
+[dependency-groups]
+# Development tooling (PEP 735). Installed by default via `uv sync`.
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.9",
+    "mypy>=1.14",
+    "ipykernel>=6.29",
+]
+
+# ---------------------------------------------------------------------------
+# uv: pin PyTorch to the CUDA 13.0 (cu130) index — matches the RTX 5070 Ti
+# (Blackwell / sm_120) this study ran on. Never install a blind CUDA wheel:
+# this index is explicit so only `torch` resolves from it.
+# ---------------------------------------------------------------------------
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+
+[project.scripts]
+scalerag = "scalerag.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scalerag"]
+
+# ---------------------------------------------------------------------------
+# Ruff — linting + formatting
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "PTH", "RUF"]
+ignore = ["E501"]  # line length handled by the formatter
+
+[tool.ruff.lint.isort]
+known-first-party = ["scalerag"]
+
+# ---------------------------------------------------------------------------
+# Mypy — type checking
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+packages = ["scalerag"]
+mypy_path = "src"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+show_error_codes = true
+
+# ---------------------------------------------------------------------------
+# Pytest + coverage
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "unit: fast isolated unit tests",
+    "integration: cross-component tests",
+    "leakage: temporal-leakage / split-integrity guards",
+    "gpu: requires a CUDA GPU",
+    "slow: long-running tests",
+]
+
+[tool.coverage.run]
+source = ["scalerag"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

@@ -1,0 +1,16 @@
+# LightGBM baseline — small declared smoke run (Phase 2).
+# Multiple seeds so results are reported with dispersion (docs/research-rules.md rule 6).
+name: lightgbm_smoke
+baseline: lightgbm
+processed_dir: data/processed
+last_labeled_day: 1941
+n_earlier_val: 2
+split: val               # forecast d_1886–d_1913; `test` held out
+subset: 24               # small declared subset (synthetic fixture)
+seeds: [42, 43, 44]
+params:
+  n_estimators: 200
+  learning_rate: 0.05
+  num_leaves: 31
+  objective: tweedie
+  tweedie_variance_power: 1.1
