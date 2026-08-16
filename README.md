@@ -34,6 +34,7 @@ full, including the parts that did not work.
 - [Reproducing every number](#reproducing-every-number)
 - [Repository layout](#repository-layout)
 - [Protocol](#protocol)
+- [Manuscript](#manuscript)
 - [Citation](#citation)
 
 ---
@@ -509,9 +510,10 @@ tests/
   leakage/      7 files    temporal-integrity guards — first-class, not an afterthought
   integration/  1 file     end-to-end baseline evaluation
 
-scripts/   22 entry points, one per reproducible artifact
-docs/      19 curated reports + machine-readable result tables
+scripts/   23 entry points, one per reproducible artifact
+docs/      curated reports + machine-readable result tables
 figures/   every figure in this README
+paper/     the manuscript — main.tex, references.bib, figures/
 configs/   YAML run definitions, schema-validated with extra="forbid"
 ```
 
@@ -546,6 +548,19 @@ resamples at a single evaluation origin, and that the scale rule carried onto
 ETTm2 was the wrong one.
 
 ---
+
+## Manuscript
+
+The full write-up lives in [`paper/`](paper/) — `main.tex`, `references.bib` and
+the 11 figures it references, self-contained and buildable with:
+
+```bash
+cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
+```
+
+See [`paper/README.md`](paper/README.md) for the build verification, the package
+requirements, and a per-figure table of what is and is not reproducible from
+this repository.
 
 ## Citation
 
