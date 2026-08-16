@@ -529,12 +529,15 @@ ETTm2 was the wrong one.
 
 ## Citation
 
+The manuscript is under peer review, so author and venue details are withheld
+until notification.
+
 ```bibtex
 @article{scalerag2026,
   title  = {ScaleRAG: When Does Retrieval Help a Time Series Foundation Model?
             Scale Mismatch and the Limits of Non-Neural Retrieval Augmentation},
   year   = {2026},
-  note   = {Code: https://github.com/Nidan73/ScaleRAG}
+  note   = {Under review. Code: https://github.com/Nidan73/ScaleRAG}
 }
 ```
 
