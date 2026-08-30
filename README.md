@@ -15,9 +15,9 @@ full, including the parts that did not work.
 > **Headline, stated honestly.** On the held-out M5 panel ScaleRAG beats its
 > frozen Chronos-2 backbone by **5.49% RMSSE**, exceeds a tuned LightGBM by only
 > **0.69%**, **loses** the competition's own WRMSSE metric, and meets **none of
-> three pre-registered success criteria**. On dense ETTm2 it is **0.85% worse**
+> three pre-registered success criteria**. On dense ETTm2 it is **0.71% worse**
 > than the backbone it augments. The mechanism works — retrieval quality
-> improves by 85.4% — but that gain does not become a forecasting gain outside a
+> improves by 85.5% — but that gain does not become a forecasting gain outside a
 > narrow regime. Locating why is the contribution.
 
 ---
@@ -163,14 +163,26 @@ learning a projection from a pretraining corpus; here it costs two scalars.
 On dense data `w` is a constant chosen on validation (`w = 0.25`) and the whole
 pipeline stays parameter-free. On sparse intermittent panels the value of
 retrieval varies sharply across series, so `w = g(φ)` is predicted per series and
-per origin by a gradient-boosted regressor over six origin-time diagnostics:
-nearest-neighbour distance, retrieval disagreement, intermittency, log-volume,
-backbone predictive spread, and neighbour scale spread.
+per origin from six origin-time diagnostics: nearest-neighbour distance,
+retrieval disagreement, intermittency, log-volume, backbone predictive spread,
+and query scale spread.
 
-The gate is fitted by least squares onto the per-origin oracle weight, which has
-a closed-form solution, so fitting needs no inner optimisation loop. **The gate
-is the only trained component anywhere in the system**, it is trained on
-historical origins only, and it is counted as trainable rather than described
+**As deployed, the gate is a classifier, not a regressor.** It is a LightGBM
+classifier trained on the binary label "did the retrieval branch beat the
+backbone at this origin", and the weight is its `predict_proba`. Earlier
+descriptions of it as a least-squares fit onto an oracle weight do not match the
+code; this is one of the defects our own
+[code-versus-text audit](docs/code-versus-text-audit.md) found. It is 200 trees
+× 15 leaves × 3 seeds = **3,000 leaf values**, and the three seeds are
+byte-identical because `subsample` and `colsample_bytree` are both 1.0, so **seed
+averaging is not offered as robustness**.
+
+Two further honesties about the feature set, from the same audit: only **two of
+the six** features see the retrieved set at all, and `scale_spread` is the
+*query's own* coefficient of variation rather than the neighbours'.
+
+**The gate is the only trained component anywhere in the system**, it is trained
+on historical origins only, and it is counted as trainable rather than described
 away.
 
 ---
@@ -241,7 +253,7 @@ difference is attributable to the restoration step alone.
 | Dataset | Metric ↓ | Raw | Restored | Improvement |
 |---|---|---:|---:|---|
 | M5 (1k, validation) | RMSSE | 2.7884 | **0.7425** | 73.4% (3.8×) |
-| ETTm2 (test, n=80,199) | MSE | 2.9989 | **0.4376** | 85.4% &nbsp;`CI [85.2, 85.6]` |
+| ETTm2 (test, n=80,199) | MSE | 3.0024 | **0.4348** | 85.5% &nbsp;`CI [85.3, 85.7]` |
 
 All **7 of 7** ETTm2 channels improve, so no single series carries the aggregate.
 
@@ -308,12 +320,13 @@ n = 80,199 windows. ΔMSE is relative to the frozen target-only backbone.
 
 | Method | MSE ↓ | MAE ↓ | ΔMSE | Trainable |
 |---|---:|---:|---:|---:|
-| Chronos-Bolt (frozen, target-only) | 0.1486 | 0.2235 | — | 0 |
-| TS-RAG (official ARM) | **0.1465** | **0.2230** | +1.42% | 4.78M |
-| ScaleRAG (restored, fixed fusion) | 0.1498 | 0.2407 | **−0.85%** | **0** |
+| Chronos-Bolt (frozen, target-only) | 0.14856 | 0.22354 | — | 0 |
+| TS-RAG (official ARM) | **0.14646** | **0.22302** | +1.42% | 4.78M |
+| ScaleRAG (restored, fixed fusion) | 0.14962 | 0.24034 | **−0.71%** | **0** |
 
-The degradation is small but statistically significant, CI `[0.28, 1.39]`. The
-official TS-RAG adapter beats our fusion by a further **2.30%** MSE, at the cost
+The degradation is small but statistically significant, CI `[0.14, 1.26]`. The
+official TS-RAG adapter beats our fusion by a further **2.16%** MSE (CI
+`[1.57, 2.72]`), at the cost
 of 4.78M trainable parameters and a pretraining corpus. Our TS-RAG reproduction
 matches its published numbers to within **0.10%**, which is the condition under
 which we treat it as a fair external comparison.
@@ -324,7 +337,7 @@ On Favorita, the third panel, the gain over the backbone is **+0.83%**.
 
 ## Diagnostics
 
-Three analyses explain the gap between an 85.4% retrieval gain and a 0.85%
+Three analyses explain the gap between an 85.5% retrieval gain and a 0.71%
 end-to-end loss. This is the part of the study that generalises.
 
 ### 1. Retrieval utility is not monotone in sparsity
@@ -334,7 +347,7 @@ end-to-end loss. This is the part of the study that generalises.
 </p>
 
 Read at dataset level the relationship looks monotone — a 0.85% loss on
-continuous ETTm2, 0.83% on Favorita, 0.13% on the dense M5 slice *(not
+continuous ETTm2 (−0.71%), 0.83% on Favorita, 0.13% on the dense M5 slice *(not
 significant, CI contains zero)*, 5.08% on the full M5 validation panel, 5.63% on
 its most intermittent slice.
 
@@ -350,8 +363,18 @@ inverted U:
 
 The peak clears both extremes with **non-overlapping 95% intervals**, so this is
 not a sampling artefact. Refitting an isotonic crossing at each origin separately
-places the useful band at a zero fraction of **[0.33 ± 0.05, 0.95 ± 0.02]** —
+places the branch's crossing at a zero fraction of **[0.33 ± 0.05, 0.95 ± 0.02]** —
 the lower edge found at all 50 origins, the upper at 48.
+
+**The advantage is smaller than the raw win rate suggests, and it survives.** The
+0.794 above compares the retrieval branch against an *uncorrected* backbone, so
+part of the inverted U is the backbone being mis-levelled rather than retrieval
+being good. Under a symmetric oracle that level-corrects **both** sides, 37% of
+the amplitude is exactly that, and the mid-band advantage is **0.542**, CI
+**[0.528, 0.556]** — narrowed, still clearing a coin flip. A separate test asked
+whether the whole shape is an artefact of the scale operator and **rejected that
+explanation**: the inverted U appears under all three normalisation rules
+([docs/m5-sparse-scale-rule-report.md](docs/m5-sparse-scale-rule-report.md)).
 
 Retrieval fails at both ends for different reasons: a dense series leaves the
 backbone little to gain from an analogue, while a near-empty one offers too
@@ -359,11 +382,15 @@ little structure for any analogue to match. **Dataset-level averages and a linea
 coefficient cannot express this shape**, which is the likeliest reason it has not
 been reported before.
 
-> **For a practitioner this band is the operative result, not the method.** If a
-> panel sits outside a context zero fraction of roughly [0.33, 0.95], non-neural
-> retrieval augmentation of a frozen backbone is unlikely to repay its index
-> cost — and that can be decided from one statistic per series, before any model
-> is built.
+> **For a practitioner the band is the operative result, not the method.** Route
+> on a **positive mean effect**, not on the win rate: fused retrieval raises the
+> win rate in all ten bins, but in the sparsest bin it wins 54.6% of series while
+> its *mean* effect is −0.036 — a win-rate rule would route into a bin that loses
+> on average. The recommended routing band is therefore a zero fraction of
+> **[0.2, 0.9]**, which is a different and stricter criterion than the branch's
+> [0.33, 0.95] crossing above. Outside it, non-neural retrieval augmentation of a
+> frozen backbone is unlikely to repay its index cost — decidable from one
+> statistic per series, before any model is built.
 
 ### 2. The residual error is magnitude, not shape
 
@@ -375,14 +402,30 @@ Fitting the per-window least-squares affine correction to the realised future
 gives a **shape floor** — a lower bound, so whatever survives it is the analogue
 genuinely having the wrong shape.
 
-- Shape floor **0.0647** against a backbone at **0.1486**: optimally rescaled, the retrieved continuations would be **2.3× more accurate than the model they augment**.
-- Restoration removes **2.56** of the **2.93** MSE of scale error, but the remaining **0.373** is 5.8× the shape floor and 2.5× the backbone's entire error.
-- The split: **14.8% shape, 85.2% unrecovered magnitude.**
+- Restoration removes **2.57** of the **2.94** MSE of scale error, but the remaining **0.370** is 5.7× the retrieval shape floor and 2.5× the backbone's entire error.
+- The split: **14.9% shape, 85.1% unrecovered magnitude.** This is internal to the retrieval branch (0.0647 ÷ 0.4348) and involves no comparison with the backbone.
+
+> **Retracted claim — read this if you have seen an earlier version.** This
+> section used to say that, optimally rescaled, the analogues would be *2.3×
+> more accurate than the backbone*. **That was wrong, and its direction
+> reverses.** It compared an oracle-corrected retrieval branch against an
+> *uncorrected* backbone — granting one side two free parameters fitted on the
+> realised future and the other side none. Under the identical correction the
+> backbone's shape floor is **0.0566** against retrieval's **0.0647**: the
+> analogues are about **14% worse** at shape, not better. Paired bootstrap
+> −0.0080, CI95 [−0.0083, −0.0077], excluding zero; retrieval's shape floor
+> beats the backbone's in only **29.5%** of windows.
+
+The defensible statement is a **compression, not a superiority claim**: the
+retrieval branch's realised deficit of **2.93×** against the backbone collapses
+to **1.14×** once both sides receive the same oracle correction. A 193% deficit
+that becomes 14% under pure affine alignment localises the bottleneck in
+magnitude — symmetrically, and falsifiably.
 
 A practitioner reading only an aggregate MSE would conclude retrieval does not
-work on ETTm2. Reading the decomposition, the correct conclusion is that
-**retrieval works well and the two-scalar correction is the component that does
-not**. Those two diagnoses imply opposite next experiments.
+work on ETTm2. Reading the decomposition, the correct conclusion is that the
+analogues are close to the backbone in shape and the two-scalar correction is
+what fails. Those two diagnoses imply opposite next experiments.
 
 ### 3. Invariance and equivariance, measured rather than asserted
 
@@ -408,7 +451,7 @@ identity confirmed numerically, and restoration is **exactly equivariant**
 promotional.** The scale-only variant that both deployed configurations actually
 use passes the multiplicative test and **fails the additive one** — a 291×
 degradation in reconstruction error from an offset alone. That is precisely the
-property whose absence costs 85.2% on near-zero-centred ETTm2. The probe
+property whose absence costs 85.1% on near-zero-centred ETTm2. The probe
 *predicts* the ETTm2 failure rather than rationalising it after the fact.
 
 The implied repair — a location-aware scale rule — is
@@ -424,19 +467,30 @@ Measured on one machine, batch 256, warm-up excluded.
 
 | Component | Trainable | Latency / window | Storage |
 |---|---:|---:|---:|
-| Chronos-Bolt (frozen) | 0 (205.3M) | 0.431 ms | — |
-| TS-RAG ARM (official) | 4.78M | 0.450 ms | 1,528.6 MB |
-| ScaleRAG retrieval | **0** | 0.607 ms (CPU) | 1,096.2 MB |
-| ScaleRAG total | **0** | 1.038 ms | 1,096.2 MB |
+| Chronos-Bolt (frozen) | 0 (205.3M) | 0.431 ms (GPU) | — |
+| TS-RAG ARM (official) | 4.78M | 0.450 ms (GPU) | 1,528.6 MB |
+| ScaleRAG retrieval | **0** | 0.607 ms (CPU) → **0.09 ms (GPU)** | 1,096.2 MB |
+| ScaleRAG total | **0** | 1.038 ms (CPU) → **0.523 ms (GPU)** | 1,096.2 MB |
 
 <p align="center">
   <img src="figures/pareto-ettm2.png" width="58%" alt="Accuracy against cost on ETTm2">
 </p>
 
-**On ETTm2 we are Pareto-dominated** — slower than the official neural adapter
-*and* less accurate. The exact search that removes confounds from every ablation
-is also what sets this cost floor. The configuration is attractive where a neural
-adapter cannot be trained at all, not where it can.
+**The comparison is now same-device, and the conclusion holds.** The original
+1.038 ms put a CPU index against a GPU adapter, which is not a fair contest. On
+one device the index runs **0.486 ms CPU vs 0.073 ms GPU, a 6.6× speedup**,
+returning bit-identical candidates (n = 4,096). Scaling to the full pool puts
+ScaleRAG at ≈**0.523 ms** against the adapter's 0.450 ms.
+
+**On ETTm2 we remain Pareto-dominated** — slower *and* less accurate — but by
+**16%** on latency, not the 131% the CPU figure implied. The exact search that
+removes confounds from every ablation is also what sets this cost floor. The
+configuration is attractive where a neural adapter cannot be trained at all, not
+where it can.
+
+Storage is stated two ways deliberately: 1,096.2 MB is the float64 candidate
+matrix; the searched index is float32, i.e. **548.1 MB**. Both are given so the
+cost claim can be restated on whichever one a reader means.
 
 ---
 
@@ -460,27 +514,43 @@ Each script regenerates a specific artifact. All write machine-readable JSON.
 | `scripts/gate_transfer_run.py` | cross-dataset gate transfer → `docs/gate-transfer-report.md` |
 | `scripts/scalerag_native_ettm2.py` | ETTm2 adapter → `docs/scalerag-native-dev-report.md` |
 | `scripts/verify_gpu_retrieval.py` | GPU ≡ CPU retrieval, bit-for-bit |
-| `scripts/make_decomposition_figure.py` | `figures/error-decomposition.png`, straight from the run record |
+| `scripts/ettm2_znorm_selection_run.py` | Eq. (3) vs Eq. (4) on ETTm2 validation → `docs/ettm2-scale-operator-selection.md` |
+| `scripts/m5_sparse_scale_rule_run.py` | sparse-bin behaviour under all three rules → `docs/m5-sparse-scale-rule-report.md` |
+| `scripts/m5_incontext_baseline_run.py` | in-context conditioning vs the convex blend → `docs/incontext-baseline-report.md` |
+| `scripts/fusion_calibration_run.py` | what the fused predictive law actually is → `docs/fusion-calibration-report.md` |
+| `scripts/scale_identifiability_run.py` | sparse-end scale identifiability → `docs/scale-identifiability-report.md` |
+| `scripts/wrmsse_attribution_run.py` | where the WRMSSE loss comes from → `docs/wrmsse-attribution-report.md` |
+| `scripts/m5_ksweep_gate_run.py` | k sweep beyond 20, gate out-of-origin validation |
+| `scripts/ettm2_cost_run.py` | same-device CPU/GPU index cost |
+| `scripts/make_paper_figures.py` | `fig_decomp`, `fig3_band`, `fig_pareto`; `--check` verifies without writing |
+| `scripts/make_gap_map.py` | the gap-to-contribution schematic |
 | `scripts/make_phase11a_figures.py` | the Phase-11A figure set |
 
 **On the figures.** Every *number* in every figure above is regenerated by the
 scripts in this table, which write the JSON in `docs/`. The figure *files* are
 a mix:
 
-- `figures/error-decomposition.png` is fully reproducible here — run
-  `uv run python scripts/make_decomposition_figure.py`. It reads
-  `docs/error-decomposition-ettm2-test.json`, hardcodes nothing, and refuses to
-  render if the waterfall does not close to within `1e-6`.
-- The four schematics (`pipeline`, `stage1-normalization`, `stage3-restoration`,
-  `stage4-gated-fusion`, `gap-map`) are drawio diagrams whose sources are not in
-  this repository.
-- The remaining plotted figures were rendered by a manuscript-side script.
+- **Three rebuild from a clean clone.** `error-decomposition` and `pareto-ettm2`
+  come from `scripts/make_paper_figures.py`, which reads the run records tracked
+  under `reports/`, hardcodes nothing, and **raises** rather than drawing if a
+  figure disagrees with its data — `--check` verifies without writing. `gap-map`
+  comes from `scripts/make_gap_map.py` and its drawio source in
+  `docs/figure-sources/`.
+- **`regime-band` needs one local run first.** Its generator reads 50 per-origin
+  checkpoints (~2.6 MB of intermediates) that are not tracked here; regenerate
+  them with `scripts/m5_sparse_scale_rule_run.py`, after which
+  `make_paper_figures.py` rebuilds the figure.
+- **Three schematics** (`pipeline`, `stage1-normalization`, `stage3-restoration`,
+  `stage4-gated-fusion`) are drawio diagrams whose sources are not in this
+  repository.
+- The rest were rendered by a manuscript-side script.
   `scripts/make_phase11a_figures.py` produces an earlier, overlapping set
   (`fig1_motivation`, `fig2_ablation`, `fig3_qualitative`, `fig4_regimes`,
   `fig5_pareto`, `fig6_sensitivity`) rather than these exact files.
 
-Treat the rest of `figures/` as published artifacts whose underlying values are
-reproducible, not as build outputs of this tree.
+So do **not** describe the figure set as reproducible as a whole. Four are; the
+underlying values of all eleven are; the remaining files are published artifacts
+rather than build outputs of this tree.
 
 **Curated results** live in `docs/` and are tracked. `reports/` is regenerable
 and gitignored. The tables above are machine-readable in
@@ -499,6 +569,8 @@ src/scalerag/
   native.py                                            dense-panel adapter (ETTm2)
   tsfm/chronos2.py                                     frozen backbone wrapper
   affine_probe.py  error_decomposition.py  regime.py   the three diagnostics
+  scale_operators.py                                   the normalisation rules + identifiability
+  sparse_regime.py                                     per-bin profiling on intermittent panels
   leakage.py  splits.py                                horizon guard, chronological splits
   metrics.py  hierarchy.py                             RMSSE / WRMSSE / MASE / WAPE / pinball
   features.py  baselines/                              LightGBM + Seasonal-Naive
@@ -506,18 +578,18 @@ src/scalerag/
   config.py  reproducibility.py  eval.py  cli.py       run records, seeding, config schema
 
 tests/
-  unit/        11 files    component correctness
-  leakage/      7 files    temporal-integrity guards — first-class, not an afterthought
+  unit/        16 files    component correctness
+  leakage/      9 files    temporal-integrity guards — first-class, not an afterthought
   integration/  1 file     end-to-end baseline evaluation
 
-scripts/   23 entry points, one per reproducible artifact
+scripts/   33 entry points, one per reproducible artifact
 docs/      curated reports + machine-readable result tables
 figures/   every figure in this README
 paper/     the manuscript — main.tex, references.bib, figures/
 configs/   YAML run definitions, schema-validated with extra="forbid"
 ```
 
-Every splitting, scaling, retrieval and feature component has a leakage test that
+**186 tests pass.** Every splitting, scaling, retrieval and feature component has a leakage test that
 **fails when a temporal violation is deliberately introduced** — asserting the
 violation is caught, not merely that normal input passes.
 
@@ -552,7 +624,7 @@ ETTm2 was the wrong one.
 ## Manuscript
 
 The full write-up lives in [`paper/`](paper/) — `main.tex`, `references.bib` and
-the 11 figures it references, self-contained and buildable with:
+the 11 figures it references — 21 pages, self-contained and buildable with:
 
 ```bash
 cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main

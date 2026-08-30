@@ -1,7 +1,7 @@
 # Reproducibility Policy
 
 Every result must be reproducible from recorded inputs. This policy operationalises
-`research-rules.md` rules 6 and 10.
+docs/research-rules.md research rules 6 and 10.
 
 ## Record for every experiment
 

@@ -116,3 +116,67 @@ def test_unknown_scale_and_bad_series_raise() -> None:
         NativeScaleRetriever(series, 800, scale="bogus", context_length=32, horizon=8)
     with pytest.raises(ValueError, match="1-D"):
         NativeScaleRetriever(np.zeros((2, 100)), 80, scale="rms", context_length=16, horizon=4)
+
+
+@pytest.mark.unit
+def test_gpu_topk_matches_the_cpu_path_exactly_on_cpu_device():
+    """Referee item 19 needs a same-device cost comparison, which needs a GPU
+    retriever for ETTm2. It is only usable if it is the same retriever."""
+    from scalerag.native import topk_exact, topk_exact_torch
+
+    rng = np.random.default_rng(4)
+    q = rng.standard_normal((37, 24))
+    c = rng.standard_normal((900, 24))
+    for k in (1, 5, 20):
+        ids_cpu, d_cpu = topk_exact(q, c, k)
+        ids_gpu, d_gpu = topk_exact_torch(q, c, k, device="cpu")
+        np.testing.assert_array_equal(ids_gpu, ids_cpu)
+        np.testing.assert_allclose(d_gpu, d_cpu, rtol=0, atol=1e-9)
+
+
+@pytest.mark.unit
+def test_gpu_topk_breaks_ties_by_candidate_index_like_the_cpu_path():
+    """Duplicate candidates must resolve identically or the two paths diverge."""
+    from scalerag.native import topk_exact, topk_exact_torch
+
+    c = np.repeat(np.eye(4), 3, axis=0)  # every vector appears three times
+    q = np.eye(4)[:2]
+    ids_cpu, _ = topk_exact(q, c, 4)
+    ids_gpu, _ = topk_exact_torch(q, c, 4, device="cpu")
+    np.testing.assert_array_equal(ids_gpu, ids_cpu)
+
+
+@pytest.mark.gpu
+def test_gpu_topk_matches_on_cuda():
+    import torch
+
+    if not torch.cuda.is_available():
+        pytest.skip("no CUDA device")
+    from scalerag.native import topk_exact, topk_exact_torch
+
+    rng = np.random.default_rng(5)
+    q, c = rng.standard_normal((64, 32)), rng.standard_normal((5000, 32))
+    ids_cpu, _ = topk_exact(q, c, 20)
+    ids_gpu, _ = topk_exact_torch(q, c, 20, device="cuda")
+    np.testing.assert_array_equal(ids_gpu, ids_cpu)
+
+
+@pytest.mark.unit
+def test_topk_prefix_is_stable_when_ties_straddle_the_k_boundary():
+    """A top-20 must equal the first 20 of a top-100, or k is not a free slice.
+
+    Regression: argpartition selects an arbitrary subset among equal distances, so a
+    tie group crossing the boundary was resolved by partition order instead of by
+    candidate index. ETTm2's LUFL channel has tie groups large enough that this
+    changed a recorded result.
+    """
+    from scalerag.native import topk_exact
+
+    # 40 identical candidates then 40 distinct ones: the tie group straddles k=20
+    c = np.vstack([np.zeros((40, 6)), np.arange(1, 41)[:, None] * np.ones((1, 6))])
+    q = np.full((3, 6), 1e-6)
+    ids20, _ = topk_exact(q, c, 20)
+    ids100, _ = topk_exact(q, c, 100)
+    np.testing.assert_array_equal(ids20, ids100[:, :20])
+    # and the tie must resolve to the lowest candidate indices
+    np.testing.assert_array_equal(ids20[0], np.arange(20))

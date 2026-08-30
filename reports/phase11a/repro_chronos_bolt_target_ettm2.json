@@ -1,0 +1,14 @@
+{
+  "method": "chronos_bolt_target",
+  "dataset": "ETTm2",
+  "mode": "target",
+  "device": "cuda:0",
+  "mse": 0.14856049418449402,
+  "mae": 0.22353515028953552,
+  "rmse": 0.38543546199798584,
+  "n_windows": 80199,
+  "seq_len": 512,
+  "pred_len": 64,
+  "eval_seconds": 34.06092182999964,
+  "limited": false
+}

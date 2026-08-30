@@ -5,7 +5,7 @@ fail loudly on a missing file, a missing column, or an unexpected day range. We
 use ``sales_train_evaluation.csv`` (days ``d_1``..``d_1941``) because Phase 2 is
 scoped to the publicly available labels through ``d_1941``.
 
-No hidden evaluation labels are ever read (docs/research-rules.md research rule 2): everything
+No hidden evaluation labels are ever read (CLAUDE.md research rule 2): everything
 here lives at or before ``d_1941``.
 """
 

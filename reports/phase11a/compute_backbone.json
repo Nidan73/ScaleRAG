@@ -1,0 +1,10 @@
+{
+  "backbone_total_params": 205292928,
+  "backbone_trainable_params_frozen": 0,
+  "arm_extra_params_trained": 4775425,
+  "arm_extra_tensor_count": 16,
+  "backbone_batch256_forward_seconds": 0.1103672981262207,
+  "backbone_latency_ms_per_window": 0.4311222583055496,
+  "backbone_peak_vram_mb_batch256": 1561.692672,
+  "batch": 256
+}

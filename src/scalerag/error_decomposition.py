@@ -21,6 +21,12 @@ For one window with truth ``y``, backbone forecast ``c``, raw retrieved mean
     MSE of the restored retrieval as actually produced.
 ``E_bb`` / ``E_fused``
     Backbone alone, and the shipped convex blend.
+``E_bb_shape``
+    MSE of the **backbone** after the same oracle affine correction. Comparing
+    ``E_shape`` against the un-corrected ``E_bb`` is not like-for-like: it grants
+    the retrieval branch two in-sample parameters per window and the backbone
+    none, so the ratio flatters retrieval by construction. Both ratios are
+    reported and only the symmetric one supports a claim.
 
 which gives the additive attribution
 
@@ -122,6 +128,7 @@ class ErrorDecomposition:
     e_res: float
     e_shape: float
     e_backbone: float
+    e_backbone_shape: float
     e_fused: float
     optimal_weight: float
     per_window: dict[str, np.ndarray] = field(default_factory=dict, repr=False)
@@ -140,6 +147,24 @@ class ErrorDecomposition:
     def shape_fraction_of_restored(self) -> float:
         """Share of the restored retrieval's error that is pure shape mismatch."""
         return self.e_shape / self.e_res if self.e_res > 0 else float("nan")
+
+    @property
+    def asymmetric_shape_ratio(self) -> float:
+        """``E_bb / E_shape`` — retrieval oracle-corrected, backbone not.
+
+        Reported only so the symmetric ratio below can be compared against it. It
+        is not a valid basis for a claim (referee item 4).
+        """
+        return self.e_backbone / self.e_shape if self.e_shape > 0 else float("nan")
+
+    @property
+    def symmetric_shape_ratio(self) -> float:
+        """``E_bb_shape / E_shape`` — both branches oracle-corrected identically.
+
+        Above 1 means the analogues carry the better shape; below 1 means the
+        backbone does. This is the ratio that supports a claim.
+        """
+        return self.e_backbone_shape / self.e_shape if self.e_shape > 0 else float("nan")
 
     @property
     def retrieval_backbone_ratio(self) -> float:
@@ -162,6 +187,7 @@ class ErrorDecomposition:
                 "restored_retrieval": self.e_res,
                 "shape_floor_oracle_rescaled": self.e_shape,
                 "backbone": self.e_backbone,
+                "shape_floor_backbone_oracle_rescaled": self.e_backbone_shape,
                 "fused": self.e_fused,
             },
             "attribution": {
@@ -169,6 +195,8 @@ class ErrorDecomposition:
                 "scale_error_remaining": self.scale_error_remaining,
                 "shape_fraction_of_restored_error": self.shape_fraction_of_restored,
                 "restored_retrieval_vs_backbone_ratio": self.retrieval_backbone_ratio,
+                "asymmetric_shape_ratio_NOT_A_CLAIM": self.asymmetric_shape_ratio,
+                "symmetric_shape_ratio": self.symmetric_shape_ratio,
                 "fusion_penalty_vs_best_branch": self.fusion_penalty,
             },
             "optimal_fusion_weight_diagnostic_only": self.optimal_weight,
@@ -192,6 +220,7 @@ def decompose_errors(
 
     fused = (1.0 - fusion_weight) * c + fusion_weight * r_res
     shape_only = oracle_rescale(r_res, t)
+    backbone_shape_only = oracle_rescale(c, t)
 
     def per_window(pred: np.ndarray) -> np.ndarray:
         return np.mean((pred - t) ** 2, axis=1)
@@ -201,6 +230,7 @@ def decompose_errors(
         "restored_retrieval": per_window(r_res),
         "shape_floor": per_window(shape_only),
         "backbone": per_window(c),
+        "backbone_shape_floor": per_window(backbone_shape_only),
         "fused": per_window(fused),
     }
     return ErrorDecomposition(
@@ -211,6 +241,7 @@ def decompose_errors(
         e_res=float(pw["restored_retrieval"].mean()),
         e_shape=float(pw["shape_floor"].mean()),
         e_backbone=float(pw["backbone"].mean()),
+        e_backbone_shape=float(pw["backbone_shape_floor"].mean()),
         e_fused=float(pw["fused"].mean()),
         optimal_weight=optimal_fusion_weight(c, r_res, t),
         per_window=pw,

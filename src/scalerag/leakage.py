@@ -1,6 +1,6 @@
 """Temporal-leakage / split-integrity invariants.
 
-These are the enforceable core of docs/research-rules.md research rules 1, 3, 4, 5. Functions
+These are the enforceable core of CLAUDE.md research rules 1, 3, 4, 5. Functions
 either return ``None`` (invariant holds) or raise :class:`LeakageViolation`.
 Time is expressed as ordered, comparable values — integer step indices are the
 canonical form; ISO-date strings also compare correctly. This module is

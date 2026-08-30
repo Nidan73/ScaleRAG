@@ -2,7 +2,7 @@
 
 Experiment configuration is YAML on disk, validated into pydantic models so that
 every run has an explicit, serialisable, reproducible record (see the
-reproducibility rules in docs/research-rules.md). Keep this module dependency-light: it must
+reproducibility rules in CLAUDE.md). Keep this module dependency-light: it must
 import without torch or any ML stack present.
 """
 
@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class SplitConfig(BaseModel):
     """Chronological split boundaries. All splits are time-ordered — never
-    random — to avoid temporal leakage (docs/research-rules.md research rule 1)."""
+    random — to avoid temporal leakage (CLAUDE.md research rule 1)."""
 
     model_config = ConfigDict(extra="forbid")
 

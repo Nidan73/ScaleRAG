@@ -145,3 +145,49 @@ def test_identical_branches_make_the_weight_undefined() -> None:
     arr = np.ones((4, 3))
     with pytest.raises(ValueError, match="undefined"):
         optimal_fusion_weight(arr, arr, np.zeros((4, 3)))
+
+
+@pytest.mark.unit
+def test_backbone_shape_floor_is_reported():
+    """Referee item 4: the backbone needs the same oracle correction as retrieval."""
+    rng = np.random.default_rng(5)
+    t = rng.random((40, 16))
+    dec = decompose_errors(
+        truth=t,
+        backbone=t + rng.normal(0, 0.1, t.shape),
+        retrieval_raw=3.0 * t + 1.0,
+        retrieval_restored=t + rng.normal(0, 0.3, t.shape),
+        fusion_weight=0.25,
+    )
+    assert dec.e_backbone_shape <= dec.e_backbone + 1e-12
+    assert "shape_floor_backbone_oracle_rescaled" in dec.to_dict()["mse"]
+
+
+@pytest.mark.unit
+def test_symmetric_shape_ratio_is_not_the_asymmetric_one():
+    """The asymmetric ratio flatters retrieval; both must be reported separately."""
+    rng = np.random.default_rng(6)
+    t = rng.random((60, 16))
+    dec = decompose_errors(
+        truth=t,
+        backbone=t + rng.normal(0, 0.05, t.shape),
+        retrieval_raw=2.0 * t,
+        retrieval_restored=t + rng.normal(0, 0.4, t.shape),
+        fusion_weight=0.25,
+    )
+    asym = dec.e_backbone / dec.e_shape
+    assert dec.symmetric_shape_ratio == pytest.approx(dec.e_backbone_shape / dec.e_shape)
+    assert dec.symmetric_shape_ratio < asym, "the symmetric ratio must be the stricter one"
+
+
+@pytest.mark.unit
+def test_oracle_rescale_never_increases_error_for_any_predictor():
+    """The bound property the whole comparison rests on."""
+    from scalerag.error_decomposition import oracle_rescale
+
+    rng = np.random.default_rng(7)
+    t = rng.random((50, 24))
+    for pred in (t + rng.normal(0, 0.5, t.shape), 5.0 * t + 2.0, np.zeros_like(t)):
+        raw = np.mean((pred - t) ** 2, axis=1)
+        fixed = np.mean((oracle_rescale(pred, t) - t) ** 2, axis=1)
+        assert (fixed <= raw + 1e-9).all()

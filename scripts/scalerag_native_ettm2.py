@@ -35,7 +35,14 @@ import ettm2_data as E  # noqa: N812  (canonical helper; `E` matches sibling scr
 from scalerag.native import NativeScaleRetriever, fixed_fusion
 
 SCALES: tuple[str, ...] = ("mean", "rms")
-KS: tuple[int, ...] = (5, 10, 20)
+# The grid the study was conducted with. Retrieval runs once at max(KS) and slices
+# per k, so widening it costs one search rather than several -- but a wider grid is
+# a validation-only instrument. Evaluating k values that were never selected on
+# validation against the test split is selection on test (rules 9, 12), so
+# --extended-k is refused for --split test below.
+KS_FROZEN: tuple[int, ...] = (5, 10, 20)
+KS_EXTENDED: tuple[int, ...] = (5, 10, 20, 50, 100)
+KS: tuple[int, ...] = KS_FROZEN
 WEIGHTS: tuple[float, ...] = (0.25, 0.50, 0.75)
 KMAX: int = max(KS)
 OUT = Path(__file__).resolve().parents[1] / "reports/phase11a"
@@ -142,7 +149,24 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", choices=("val", "test"), required=True)
     ap.add_argument("--save-preds", action="store_true", help="write per-window preds npz")
+    ap.add_argument(
+        "--extended-k",
+        action="store_true",
+        help="sweep k up to 100 (referee item 24). VALIDATION ONLY -- refused on test.",
+    )
     a = ap.parse_args()
+
+    global KS, KMAX
+    if a.extended_k:
+        if a.split == "test":
+            raise SystemExit(
+                "refusing to sweep k on the test split: k=50 and k=100 were never "
+                "selected on validation, so scoring them there is selection on test "
+                "(rules 9, 12). Use --split val."
+            )
+        KS = KS_EXTENDED
+    KMAX = max(KS)
+
     run(a.split, a.save_preds)
 
 

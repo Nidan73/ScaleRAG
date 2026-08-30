@@ -38,18 +38,51 @@ QL = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 L, H, K = 56, 28, 20
 
 
-def retrieval_all(sales, entities, o, queries, scale="mean", mf="cat_id"):
+def retrieval_all(
+    sales,
+    entities,
+    o,
+    queries,
+    scale="mean",
+    mf="cat_id",
+    return_artifacts=False,
+    quantile_levels=None,
+    return_spread=False,
+):
     """Per-series scale-restored retrieval forecast at origin o (train_end=o).
-    Returns point[n,H], quants[n,H,Q], nn_dist[n], disagreement[n]."""
+    Returns point[n,H], quants[n,H,Q], nn_dist[n], disagreement[n].
+
+    With ``return_artifacts=True`` also returns, per series, the retrieved
+    candidate ids and the candidate and query scale params, so the identical
+    retrieved set can be re-restored under an alternative scale operator without
+    running retrieval again. The default return is unchanged.
+
+    ``quantile_levels`` overrides the module-level ``QL`` for the empirical
+    neighbour quantiles only (the deployed grid stays the default). With
+    ``return_spread=True`` the per-series, per-horizon standard deviation of the
+    restored neighbour cloud is appended to the return, which is what a
+    parametric alternative to ``np.quantile`` needs. Both are additive and
+    default to the deployed behaviour."""
+    ql = QL if quantile_levels is None else list(quantile_levels)
     db = WindowDatabase.from_training(sales, o, L, H, stride=7)
     idx = ScaleAwareIndex(db, entities, scale=scale, metric="l2")
     n = len(queries)
     pt = np.zeros((n, H))
-    qt = np.zeros((n, H, len(QL)))
+    qt = np.zeros((n, H, len(ql)))
     nnd = np.zeros(n)
     dis = np.zeros(n)
+    sd = np.zeros((n, H))
+    arts: list[dict] = []
     for i in range(n):
         ids, dists, qp = idx.search(queries[i], o + 1, K, query_series_idx=i, meta_filter=mf)
+        if return_artifacts:
+            arts.append(
+                {
+                    "ids": np.asarray(ids, dtype=np.int64),
+                    "cand_params": idx.params[ids] if ids.size else np.empty((0, 2)),
+                    "query_params": np.asarray(qp, dtype=np.float64),
+                }
+            )
         if ids.size == 0:
             base = float(queries[i].mean())
             pt[i] = base
@@ -64,10 +97,16 @@ def retrieval_all(sales, entities, o, queries, scale="mean", mf="cat_id"):
             )
         conts = np.clip(conts, 0.0, None)
         pt[i] = conts.mean(0)
-        qt[i] = np.quantile(conts, QL, axis=0).T
+        qt[i] = np.quantile(conts, ql, axis=0).T
+        sd[i] = conts.std(0)
         nnd[i] = float(dists.min()) if dists.size else 1e6
         dis[i] = float(conts.std(0).mean())
-    return pt, qt, nnd, dis
+    out: tuple = (pt, qt, nnd, dis)
+    if return_artifacts:
+        out = (*out, arts)
+    if return_spread:
+        out = (*out, sd)
+    return out
 
 
 def rmsse_series(pred, sales, o_eval):

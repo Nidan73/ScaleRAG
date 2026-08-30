@@ -3,7 +3,7 @@
 Loads processed Parquet, builds bottom-level actual/price matrices ordered
 consistently with the entities, runs a baseline, then computes per-series metrics
 and the official-style WRMSSE. Captures a reproducibility fingerprint for every
-run (docs/research-rules.md rule 10). No metric is tuned here and evaluation never touches
+run (CLAUDE.md rule 10). No metric is tuned here and evaluation never touches
 days beyond the split horizon.
 """
 

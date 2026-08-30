@@ -48,6 +48,7 @@ __all__ = [
     "TopKResult",
     "fixed_fusion",
     "topk_exact",
+    "topk_exact_torch",
 ]
 
 
@@ -91,11 +92,59 @@ def topk_exact(
         part = np.argpartition(d, kk - 1, axis=1)[:, :kk]
         for r in range(qb.shape[0]):
             cols = part[r]
-            order = np.lexsort((idx_all[cols], d[r, cols]))  # dist asc, tie-break by index
-            sel = cols[order]
+            # argpartition picks an arbitrary kk among equal distances, so a tie group
+            # straddling the k boundary would be resolved by partition order rather
+            # than by candidate index -- which is what this function promises. Widen
+            # the slice to every candidate at or inside the boundary distance, then
+            # let the lexsort break the tie by index over the whole group.
+            thresh = d[r, cols].max()
+            wide = np.flatnonzero(d[r] <= thresh)
+            order = np.lexsort((idx_all[wide], d[r, wide]))[:kk]  # dist asc, index asc
+            sel = wide[order]
             ids[start + r] = sel
             dists[start + r] = d[r, sel]
     return ids, dists
+
+
+def topk_exact_torch(
+    query_vecs: np.ndarray, cand_vecs: np.ndarray, k: int, device: str = "cuda"
+) -> tuple[np.ndarray, np.ndarray]:
+    """GPU-resident equivalent of :func:`topk_exact`, for same-device cost comparison.
+
+    The ETTm2 index is CPU-resident, so a latency comparison against a GPU adapter
+    is not like-for-like. This is the identical computation on the accelerator: the
+    same ``||q||^2 - 2 q.c + ||c||^2`` identity, the same ascending-distance order,
+    and the same tie-break by ascending candidate index. Float64 throughout, so the
+    result is bit-comparable with the CPU path rather than merely close.
+
+    Arithmetic acceleration only. It selects the same candidates, so no result
+    computed with it differs from one computed with :func:`topk_exact`.
+    """
+    import torch
+
+    dev = torch.device(device if (device == "cpu" or torch.cuda.is_available()) else "cpu")
+    q = torch.as_tensor(np.ascontiguousarray(query_vecs, dtype=np.float64), device=dev)
+    c = torch.as_tensor(np.ascontiguousarray(cand_vecs, dtype=np.float64), device=dev)
+    n_cand = c.shape[0]
+    kk = min(k, n_cand)
+    c_sq = (c * c).sum(1)
+
+    ids = torch.empty((q.shape[0], kk), dtype=torch.int64, device=dev)
+    dists = torch.empty((q.shape[0], kk), dtype=torch.float64, device=dev)
+    chunk = max(1, int(4_000_000 // max(n_cand, 1)))
+    for start in range(0, q.shape[0], chunk):
+        qb = q[start : start + chunk]
+        d = (qb * qb).sum(1, keepdim=True) - 2.0 * (qb @ c.T) + c_sq.unsqueeze(0)
+        d.clamp_(min=0.0)
+        # torch.topk on -d is not order-stable across ties, so sort the full row:
+        # ascending distance, and ties already ascend by index because sort is stable.
+        # A stable full sort resolves ties by ascending index globally, matching
+        # topk_exact's widened selection rather than argpartition's arbitrary one.
+        order = torch.argsort(d, dim=1, stable=True)
+        sel = order[:, :kk]
+        ids[start : start + qb.shape[0]] = sel
+        dists[start : start + qb.shape[0]] = torch.gather(d, 1, sel)
+    return ids.cpu().numpy(), dists.cpu().numpy()
 
 
 @dataclass

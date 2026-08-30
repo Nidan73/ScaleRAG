@@ -79,6 +79,10 @@ def main() -> int:
         "residual_scale_error_restored_minus_shape": ("restored_retrieval", "shape_floor"),
         "fusion_effect_fused_minus_backbone": ("fused", "backbone"),
         "retrieval_deficit_restored_minus_backbone": ("restored_retrieval", "backbone"),
+        # Referee item 4: both branches under the SAME oracle correction. A positive
+        # delta means the analogues carry the better shape; negative means the
+        # backbone does. The asymmetric comparison cannot answer this.
+        "symmetric_shape_backbone_minus_retrieval": ("backbone_shape_floor", "shape_floor"),
     }.items():
         delta, lo, hi = paired_bootstrap_mean_diff(pw[a], pw[b], args.n_boot, SEED)
         contrasts[label] = {
@@ -89,6 +93,7 @@ def main() -> int:
 
     # Share of windows where the retrieval branch actually beats the backbone.
     better = float(np.mean(pw["restored_retrieval"] < pw["backbone"]))
+    shape_better = float(np.mean(pw["shape_floor"] < pw["backbone_shape_floor"]))
 
     payload = {
         "experiment": "retrieval-to-forecasting-error-decomposition",
@@ -103,6 +108,7 @@ def main() -> int:
         "decomposition": dec.to_dict(),
         "contrasts": contrasts,
         "windows_where_retrieval_beats_backbone": better,
+        "windows_where_retrieval_shape_beats_backbone_shape": shape_better,
         "n_bootstrap": args.n_boot,
         "runtime_sec": round(time.time() - started, 2),
         "run_context": RunContext().to_dict(),
@@ -120,6 +126,7 @@ def main() -> int:
     print(f"  {'restored retrieval':<34s} MSE {dec.e_res:9.4f}")
     print(f"  {'  of which pure shape (oracle)':<34s} MSE {dec.e_shape:9.4f}")
     print(f"  {'backbone (frozen Chronos-Bolt)':<34s} MSE {dec.e_backbone:9.4f}")
+    print(f"  {'  of which pure shape (oracle)':<34s} MSE {dec.e_backbone_shape:9.4f}")
     print(f"  {'fused (shipped)':<34s} MSE {dec.e_fused:9.4f}\n")
     print(f"  scale error removed by restoration : {dec.scale_error_removed:9.4f}")
     print(f"  scale error still remaining        : {dec.scale_error_remaining:9.4f}")
@@ -127,6 +134,9 @@ def main() -> int:
     print(f"  restored retrieval / backbone      : {dec.retrieval_backbone_ratio:9.2f}x")
     print(f"  fusion penalty vs best branch      : {dec.fusion_penalty:+9.5f}")
     print(f"  windows where retrieval wins       : {better:9.1%}")
+    print(f"  ASYMMETRIC ratio (NOT a claim)     : {dec.asymmetric_shape_ratio:9.2f}x")
+    print(f"  SYMMETRIC shape ratio              : {dec.symmetric_shape_ratio:9.2f}x")
+    print(f"  windows retrieval shape wins       : {shape_better:9.1%}")
     print(f"  optimal weight (DIAGNOSTIC ONLY)   : {dec.optimal_weight:9.4f}\n")
     for label, c in contrasts.items():
         flag = "CI excludes 0" if c["excludes_zero"] else "CI includes 0"

@@ -1,0 +1,89 @@
+{
+  "experiment": "retrieval-to-forecasting-error-decomposition",
+  "split": "test",
+  "source": "reports/phase11a/scalerag_native_ettm2_test_preds.npz",
+  "note": "Post-hoc attribution of stored Phase-11A forecasts. No model is run, no dataset opened, no configuration selected. The optimal fusion weight is reported as a diagnostic and is NOT adopted (rules 9, 12).",
+  "frozen_config": {
+    "scale": "mean",
+    "k": 20,
+    "fusion_weight": 0.25
+  },
+  "decomposition": {
+    "n_windows": 80199,
+    "horizon": 64,
+    "fusion_weight": 0.25,
+    "mse": {
+      "raw_retrieval": 3.0023615775234176,
+      "restored_retrieval": 0.43478703492015364,
+      "shape_floor_oracle_rescaled": 0.0647166032780131,
+      "backbone": 0.14856049619255604,
+      "shape_floor_backbone_oracle_rescaled": 0.056630410284687696,
+      "fused": 0.14962087294961496
+    },
+    "attribution": {
+      "scale_error_removed_by_restoration": 2.567574542603264,
+      "scale_error_remaining": 0.37007043164214054,
+      "shape_fraction_of_restored_error": 0.14884667223321865,
+      "restored_retrieval_vs_backbone_ratio": 2.9266665504173215,
+      "asymmetric_shape_ratio_NOT_A_CLAIM": 2.295554597548357,
+      "symmetric_shape_ratio": 0.8750522650487651,
+      "fusion_penalty_vs_best_branch": 0.0010603767570589173
+    },
+    "optimal_fusion_weight_diagnostic_only": 0.11935939870282124
+  },
+  "contrasts": {
+    "restoration_gain_raw_minus_restored": {
+      "delta_mse": 2.5675745426032637,
+      "ci95": [
+        2.529307925863751,
+        2.605492278456177
+      ],
+      "excludes_zero": true
+    },
+    "residual_scale_error_restored_minus_shape": {
+      "delta_mse": 0.37007043164214043,
+      "ci95": [
+        0.3641476614681736,
+        0.3762586401762289
+      ],
+      "excludes_zero": true
+    },
+    "fusion_effect_fused_minus_backbone": {
+      "delta_mse": 0.001060376757058941,
+      "ci95": [
+        0.00026864623369708793,
+        0.0018925686097495877
+      ],
+      "excludes_zero": true
+    },
+    "retrieval_deficit_restored_minus_backbone": {
+      "delta_mse": 0.28622653872759757,
+      "ci95": [
+        0.2803362299688369,
+        0.2921270535279428
+      ],
+      "excludes_zero": true
+    },
+    "symmetric_shape_backbone_minus_retrieval": {
+      "delta_mse": -0.008086192993325417,
+      "ci95": [
+        -0.008391362558887056,
+        -0.00778163419101772
+      ],
+      "excludes_zero": true
+    }
+  },
+  "windows_where_retrieval_beats_backbone": 0.23611266973403658,
+  "windows_where_retrieval_shape_beats_backbone_shape": 0.294953802416489,
+  "n_bootstrap": 2000,
+  "runtime_sec": 2.41,
+  "run_context": {
+    "python": "3.11.15",
+    "platform": "Linux-7.2.0-1-cachyos-x86_64-with-glibc2.44",
+    "git_commit": "89b201a2cbece96c4765e5ed7797bb4ee951d47e",
+    "torch_version": "2.13.0+cu130",
+    "cuda_available": true,
+    "cuda_version": "13.0",
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti"
+  }
+}

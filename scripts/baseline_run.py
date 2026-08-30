@@ -4,7 +4,7 @@
 Runs EXACTLY ONE small, explicitly-declared baseline configuration. Before doing
 anything it prints the full declaration (model, dataset subset, split, metrics,
 seed(s), expected outputs, approximate compute). It REFUSES to launch an
-undeclared or full-scale run (docs/research-rules.md research rule 12).
+undeclared or full-scale run (CLAUDE.md research rule 12).
 
     uv run python scripts/baseline_run.py --config configs/<cfg>.yaml --dry-run
     uv run python scripts/baseline_run.py --config configs/<cfg>.yaml --confirm

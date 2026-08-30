@@ -7,7 +7,7 @@ horizon days directly, with no recursion and no future leakage.
 
 Fitted statistics (item price means, per-series mean demand) are computed on the
 **training slice only** (``day_idx <= split.train_end``) and then applied to all
-rows (docs/research-rules.md rule 5). Prices are treated as known-future covariates (M5 prices
+rows (CLAUDE.md rule 5). Prices are treated as known-future covariates (M5 prices
 are announced ahead), never the target.
 """
 

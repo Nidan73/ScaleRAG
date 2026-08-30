@@ -1,7 +1,7 @@
 """Chronological rolling forecast splits for M5 (Phase 2, tasks 4-5).
 
 Time is the M5 day index (``d_1``..``d_1941``). Splits are **expanding-window**
-and strictly chronological (docs/research-rules.md rule 1): a split trains on days
+and strictly chronological (CLAUDE.md rule 1): a split trains on days
 ``1..train_end`` and forecasts the next ``horizon`` days
 ``[train_end+1, train_end+horizon]``. Only publicly labelled days (``<= 1941``)
 are ever used as forecast targets (rule 2).

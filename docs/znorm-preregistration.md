@@ -129,3 +129,62 @@ run licenses re-opening M5 test or Phase 11B.
    `docs/znorm-confirmation-report.md`.
 
 Pre-registered 2026-07-26. Not executed.
+
+---
+
+## ADDENDUM — 2026-08-28 (selection step executed; premises revised)
+
+**Appended, not edited.** Nothing above this line has been altered. The
+confirmation run has not begun.
+
+**1. Premise 2 is retracted.** It cites the C3 claim that on ETTm2 "the analogues
+are 2.3x better than the backbone once optimally rescaled". That comparison
+applied an oracle correction to the retrieval branch and none to the backbone.
+Under the *same* correction the backbone's shape floor is 0.0566 (test) / 0.0469
+(val) against retrieval's 0.0647 / 0.0542 — the analogues are ~13% **worse**.
+See `docs/retrieval-forecasting-gap.md`.
+
+**2. Premise 1 is confirmed and is the operative one.** The affine probe's
+location-term result — `mean` restoration carries no μ, so a pure offset degrades
+it 291x — is what the selection step validated.
+
+**3. A third premise, stronger than either, was added by the code audit.** On
+ETTm2 the deployed Eq. (4) divisor is the *signed* window mean, negative for
+65.4% of validation queries, so 26.05% of retrieved pairs are restored through a
+negative ratio and emerge sign-inverted. See `docs/code-versus-text-audit.md`
+finding B. This is a correctness defect in the deployed operator, but the
+selection step showed it is **not** what costs the accuracy (see 4).
+
+**4. Selection step: EXECUTED on ETTm2 validation, 2026-08-28.**
+`docs/ettm2-scale-operator-selection.md`,
+`reports/ettm2-znorm/`. Fused at the frozen k=20, w=0.25, against a
+0.10602 backbone: Eq. (4) `mean` −4.548% (CI [−5.033, −4.077]), `rms` −5.361%,
+Eq. (3) `znorm` **+1.522%** (CI [+1.253, +1.781]). Eq. (3) over Eq. (4) is
++5.806% fused and +30.967% on the retrieval branch, all intervals excluding zero.
+**ETTm2 validation selects `znorm` decisively.**
+
+`rms` removes the sign flip but has no location term and is the *worst* of the
+three, so the binding constraint is the **missing μ**, not the sign pathology.
+
+**5. M5 validation selects the opposite, and this was already on record.**
+`docs/ablation-report.md`: `mean` 0.7425 RMSSE against `znorm` 0.8719 — Eq. (4)
+wins by 17% on the sparse non-negative panel. The selection is therefore **not
+global**. The operative axis is the panel's sign structure: divide by a signed
+mean only where the data is non-negative.
+
+**6. The confirmation plan is now in question, and this is a decision for the
+user, not a mechanical step.** The one clean split this document names is
+**Favorita test, origin 972**. Favorita is a retail count panel like M5 —
+non-negative and sparse — so both theory and the M5 result predict Eq. (4) wins
+there and Eq. (3) loses. Running the confirmation on the single panel where the
+hypothesis is predicted to fail would confirm nothing.
+
+Hypotheses H1–H3 above were written as though `znorm` were universally better.
+They are **not** revised here, because revising hypotheses after seeing
+selection evidence is precisely what a pre-registration exists to prevent. Either
+a **new** pre-registration is written for the sign-structure-conditional
+hypothesis — in which case Favorita test becomes its predicted-negative arm,
+which is a legitimate and informative use of it — or the ETTm2 finding stays
+**validation-only and unconfirmed**, and is reported that way.
+
+**Status unchanged: the confirmation run has NOT been executed.**

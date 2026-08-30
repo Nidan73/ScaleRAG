@@ -1,7 +1,7 @@
 """Reproducibility helpers: seeding and run-context capture.
 
 Every experiment must record seeds, versions, config, git commit, runtime and
-hardware (docs/research-rules.md research rule 10). This module centralises seeding and a
+hardware (CLAUDE.md research rule 10). This module centralises seeding and a
 best-effort environment fingerprint. It imports torch lazily so it stays usable
 in environments where the ML stack is not installed.
 """

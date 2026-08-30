@@ -1,4 +1,4 @@
-"""Leakage / split-integrity invariant tests (docs/research-rules.md rules 1, 3, 4, 5).
+"""Leakage / split-integrity invariant tests (CLAUDE.md rules 1, 3, 4, 5).
 
 Each invariant is tested both ways: a valid case passes silently, and a
 deliberately invalid case raises LeakageViolation. Covers smoke-test check 11.

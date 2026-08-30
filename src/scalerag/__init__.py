@@ -18,6 +18,10 @@ Layout
     Convex blend of backbone and retrieval branch, plus the paired bootstrap.
 ``native``
     Standalone adapter for dense continuous panels (ETTm2).
+``scale_operators``
+    The normalisation rules themselves, and their identifiability properties.
+``sparse_regime``
+    Per-bin regime profiling on intermittent panels.
 ``tsfm.chronos2``
     Frozen backbone wrapper.
 ``affine_probe`` / ``error_decomposition`` / ``regime``
@@ -33,6 +37,6 @@ The evaluation protocol these modules must satisfy is stated in
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = ["__version__"]

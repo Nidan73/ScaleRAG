@@ -37,7 +37,25 @@ kaggle.json
 # Run outputs. reports/ is regenerable by the scripts in scripts/; the curated
 # results that back the paper live in docs/ and are tracked.
 # ---------------------------------------------------------------------------
-reports/
+# reports/ is regenerable and excluded, except the small run records the figure
+# generator reads -- without these, `make figures` cannot rebuild from a clone.
+reports/*
+!reports/error-decomposition/
+!reports/ettm2-cost/
+!reports/regime-threshold/
+!reports/phase11a/
+reports/error-decomposition/*
+!reports/error-decomposition/ettm2-test-error-decomposition.json
+reports/ettm2-cost/*
+!reports/ettm2-cost/ettm2-val-cost.json
+reports/regime-threshold/*
+!reports/regime-threshold/m5-val-regime-threshold-1000-50origins.json
+reports/phase11a/*
+!reports/phase11a/compute_backbone.json
+!reports/phase11a/compute_scalerag.json
+!reports/phase11a/repro_chronos_bolt_target_ettm2.json
+!reports/phase11a/repro_tsrag_official_ettm2.json
+!reports/phase11a/scalerag_native_ettm2_test.json
 outputs/
 artifacts/
 logs/

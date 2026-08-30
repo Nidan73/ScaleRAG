@@ -2,7 +2,7 @@
 
 Scale-dependent metrics (MASE, RMSSE) take the training in-sample actuals and
 derive their denominator from the naive forecast **on training data only**
-(docs/research-rules.md rule 5) — never from the evaluation horizon. The official-style M5
+(CLAUDE.md rule 5) — never from the evaluation horizon. The official-style M5
 scale ignores the leading run of zeros before a series' first observed sale.
 
 All functions operate on 1-D NumPy arrays for a single (possibly aggregated)

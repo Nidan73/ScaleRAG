@@ -1,0 +1,14 @@
+{
+  "method": "tsrag_official",
+  "dataset": "ETTm2",
+  "mode": "tsrag",
+  "device": "cuda:0",
+  "mse": 0.14645536243915558,
+  "mae": 0.22301790118217468,
+  "rmse": 0.38269487023353577,
+  "n_windows": 80199,
+  "seq_len": 512,
+  "pred_len": 64,
+  "eval_seconds": 35.52804121199915,
+  "limited": false
+}

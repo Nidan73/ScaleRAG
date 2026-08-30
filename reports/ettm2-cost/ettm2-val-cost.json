@@ -1,0 +1,30 @@
+{
+  "experiment": "ettm2-retrieval-cost-same-device",
+  "split": "val",
+  "channel": "HUFL",
+  "k": 20,
+  "n_queries_timed": 4096,
+  "candidate_pool_windows": 33985,
+  "gpu_matches_cpu_exactly": true,
+  "latency_ms_per_query": {
+    "cpu": 0.4856957821175456,
+    "gpu": 0.07323938189074397,
+    "speedup": 6.631620442156245
+  },
+  "storage_mb": {
+    "index_vectors_float32": 69.60128,
+    "index_vectors_float64_as_reported": 139.20256,
+    "note": "Table X's 1,096.2 MB is the float64 candidate matrix. The searched index is float32, i.e. half. Both are given so the cost claim can be restated on the right one."
+  },
+  "timestamp": "2026-08-28T11:41:53.949398+00:00",
+  "runtime_sec": 12.17,
+  "run_context": {
+    "python": "3.11.15",
+    "platform": "Linux-7.2.0-1-cachyos-x86_64-with-glibc2.44",
+    "git_commit": "d8d96417577300761b21014ed1f166e4a5ae7b67",
+    "torch_version": "2.13.0+cu130",
+    "cuda_available": true,
+    "cuda_version": "13.0",
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti"
+  }
+}
