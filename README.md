@@ -305,11 +305,18 @@ here rather than left out.
 
 Fixed before the split was opened, reported unchanged.
 
-| # | Criterion | Observed | Met |
+Stated in the registered wording, not paraphrased — the method had to meet **at
+least one** of the three:
+
+| # | Criterion, as registered | Observed | Met |
 |---|---|---|:--:|
-| 1 | RMSSE improvement over tuned LightGBM ≥ 3% | 0.69% `CI [0.57, 0.82]` | ❌ |
-| 2 | Competitive on the official WRMSSE metric | 1.2231 vs 0.8663 | ❌ |
-| 3 | No regression on absolute and probabilistic accuracy | worse on MASE, WAPE, MAE, pinball, coverage | ❌ |
+| 1 | ≥3% relative RMSSE/WRMSSE improvement over the strongest matched baseline, 95% CI excluding zero | **0.69%** over LightGBM, CI [0.57, 0.82] — interval excludes zero, margin does not clear 3% | ❌ |
+| 2 | ≥5% over target-only Chronos-2 on **both** M5 and Favorita | M5 **+5.49%** clears the bar; Favorita **+0.83%** does not, so the conjunct fails | ❌ |
+| 3 | ≥7% on predefined sparse / intermittent / low-volume / reduced-history slices, without materially degrading overall | best qualifying slice **+0.93%** (reduced-history); intermittent −0.03%, low-volume −0.30%. The only slice above 5% is *dense* (+5.04%), which the criterion did not target | ❌ |
+
+**0 of 3.** Criterion 2 is worth reading closely: M5 alone would have passed it.
+The registration required both panels, and Favorita is where the method's
+regime dependence shows.
 
 We report this instead of re-tuning. The split was consumed exactly once by
 design, and any post-hoc adjustment would invalidate it.
@@ -412,7 +419,7 @@ genuinely having the wrong shape.
 > *uncorrected* backbone — granting one side two free parameters fitted on the
 > realised future and the other side none. Under the identical correction the
 > backbone's shape floor is **0.0566** against retrieval's **0.0647**: the
-> analogues are about **14% worse** at shape, not better. Paired bootstrap
+> analogues are about **14.3% worse** at shape, not better. Paired bootstrap
 > −0.0080, CI95 [−0.0083, −0.0077], excluding zero; retrieval's shape floor
 > beats the backbone's in only **29.5%** of windows.
 
@@ -624,7 +631,7 @@ ETTm2 was the wrong one.
 ## Manuscript
 
 The full write-up lives in [`paper/`](paper/) — `main.tex`, `references.bib` and
-the 11 figures it references — 21 pages, self-contained and buildable with:
+the 11 figures it references — 22 pages, self-contained and buildable with:
 
 ```bash
 cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
