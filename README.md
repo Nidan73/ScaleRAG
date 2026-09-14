@@ -2,10 +2,15 @@
 
 **Scale-Aware Retrieval Augmentation for Time-Series Foundation Models.**
 
-A frozen time-series foundation model is augmented with a retrieval branch that
-adds **zero trainable parameters**. Nearest neighbours are matched in a
-normalized shape space, their continuations are restored to the query's own
+A frozen time-series foundation model is augmented with a retrieval branch whose
+**first three stages add no trainable parameters**. Nearest neighbours are matched
+in a normalized shape space, their continuations are restored to the query's own
 scale in closed form, and the result is blended with the backbone's forecast.
+
+That blend weight is where the parameter count lives. On dense data it is a
+constant and the pipeline really is parameter-free end to end; on sparse
+intermittent panels it comes from a gradient-boosted gate of 3,000 leaf values.
+Calling the whole system parameter-free would be an overclaim, so we don't.
 
 This repository is the code and the full result set behind a study that asks a
 narrower question than most retrieval papers: **when does retrieval actually
@@ -631,7 +636,7 @@ ETTm2 was the wrong one.
 ## Manuscript
 
 The full write-up lives in [`paper/`](paper/) — `main.tex`, `references.bib` and
-the 11 figures it references — 22 pages, self-contained and buildable with:
+the 11 figures it references — 21 pages, self-contained and buildable with:
 
 ```bash
 cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
